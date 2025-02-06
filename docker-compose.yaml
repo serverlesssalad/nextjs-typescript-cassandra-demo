@@ -1,0 +1,33 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: production
+      DB_URL: ${DB_URL}
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+      CASSANDRA_LOCAL_DATACENTER: ${CASSANDRA_LOCAL_DATACENTER}
+      CASSANDRA_KEYSPACE: ${CASSANDRA_KEYSPACE}
+    volumes:
+      - .:/usr/src/app
+    command: ["npm", "run", "dev"]
+
+  cassandra:
+    image: cassandra:latest
+    environment:
+      CASSANDRA_CLUSTER_NAME: "MyCluster"
+      CASSANDRA_DC: ${CASSANDRA_LOCAL_DATACENTER}
+      CASSANDRA_RACK: "Rack1"
+    ports:
+      - "9042:9042"
+    volumes:
+      - cassandra-data:/var/lib/cassandra
+
+volumes:
+  cassandra-data:
