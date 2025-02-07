@@ -1,0 +1,22 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      DB_CONTACT_POINTS: ${DB_CONTACT_POINTS}
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_LOCAL_DATACENTER: ${DB_LOCAL_DATACENTER}
+      DB_KEYSPACE: ${DB_KEYSPACE}
+    volumes:
+      - .:/usr/src/app
+    command: ["npm", "run", "dev"]
+
+networks:
+  default:
+    driver: bridge
