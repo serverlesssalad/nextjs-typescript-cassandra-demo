@@ -1,0 +1,20 @@
+version: '3.8'
+
+services:
+  app:
+    build: .
+    ports:
+      - '3000:3000'
+    environment:
+      DB_CONTACT_POINTS: ${DB_CONTACT_POINTS}
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_LOCAL_DATACENTER: ${DB_LOCAL_DATACENTER}
+      DB_KEYSPACE: ${DB_KEYSPACE}
+    volumes:
+      - .:/app
+    command: npm start
+
+networks:
+  default:
+    driver: bridge
