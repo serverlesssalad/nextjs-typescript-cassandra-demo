@@ -1,18 +1,46 @@
 // utils/cassandra.ts
 
 import { Client } from 'cassandra-driver';
+import * as AWS from 'aws-sdk';
 
-// Set up connection options
-const client = new Client({
-  contactPoints: [process.env.DB_CONTACT_POINTS || 'localhost'],
-  localDataCenter: process.env.DB_LOCAL_DATACENTER || 'datacenter1',
-  keyspace: process.env.DB_KEYSPACE || 'your_keyspace',  // Replace with your keyspace name
-  credentials: {
-    username: process.env.DB_USERNAME || 'your_username',
-    password: process.env.DB_PASSWORD || 'your_password'
-  }
+// Set up AWS SDK credentials for AWS Keyspaces (only used if connecting to AWS)
+AWS.config.update({
+  region: process.env.AWS_REGION || 'us-east-1',  // Set your region
+  // Optionally, configure AWS credentials (from environment or IAM role)
 });
 
+const isAwsKeyspaces = process.env.DB_IS_AWS_KEYSPACES === 'true'; // Detect if connecting to AWS Keyspaces
+
+let client: Client;
+
+// Set up Cassandra connection configuration for local and AWS Keyspaces
+if (isAwsKeyspaces) {
+  // AWS Keyspaces connection setup
+  const credentials = new AWS.Credentials({
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+    sessionToken: process.env.AWS_SESSION_TOKEN,  // Use temporary credentials if needed
+  });
+
+  client = new Client({
+    contactPoints: [process.env.DB_CONTACT_POINTS || 'cassandra.us-east-1.amazonaws.com'],  // AWS Keyspaces endpoint
+    localDataCenter: process.env.DB_LOCAL_DATACENTER || 'us-east-1',
+    keyspace: process.env.DB_KEYSPACE || 'your_keyspace',
+    authProvider: new Cassandra.AwsAuthProvider(credentials), // AWS IAM for authentication
+    sslOptions: { rejectUnauthorized: true }, // Enable SSL for AWS Keyspaces
+  });
+} else {
+  // Local Cassandra connection setup
+  client = new Client({
+    contactPoints: [process.env.DB_CONTACT_POINTS || 'localhost'], // Localhost for local Cassandra
+    localDataCenter: process.env.DB_LOCAL_DATACENTER || 'datacenter1',  // Usually 'datacenter1' for local
+    keyspace: process.env.DB_KEYSPACE || 'your_keyspace', // Replace with your local keyspace
+    credentials: {
+      username: process.env.DB_USERNAME || 'cassandra', // Default Cassandra username
+      password: process.env.DB_PASSWORD || 'cassandra', // Default password (if applicable)
+    },
+  });
+}
 // Function to ensure the keyspace exists
 const ensureKeyspace = async () => {
   const keyspace = process.env.DB_KEYSPACE || 'your_keyspace';

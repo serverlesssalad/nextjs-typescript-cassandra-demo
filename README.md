@@ -20,17 +20,32 @@ You can start editing the page by modifying `app/page.tsx`. The page auto-update
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
-## Set up environment variables
-Create a .env.local file in the root of the project and set the following environment variables:
+## Set up Environment Variables
+Create a .env.local file in the root of the project and set the following environment variables based on whether you're connecting to a local Cassandra instance or AWS Keyspaces.
 
+### For Local Cassandra:
+```env
+# Local Cassandra connection settings
+DB_IS_AWS_KEYSPACES=false        # Set to 'false' for local Cassandra, 'true' for AWS Keyspaces
+DB_CONTACT_POINTS=localhost      # Replace with your local Cassandra host URL or Docker container IP
+DB_LOCAL_DATACENTER=datacenter1  # Replace with your Cassandra data center name (typically 'datacenter1')
+DB_KEYSPACE=your_keyspace        # Replace with your Cassandra keyspace name
+DB_USERNAME=cassandra            # Replace with your Cassandra username (if applicable)
+DB_PASSWORD=cassandra            # Replace with your Cassandra password (if applicable)
 ```
-# Cassandra connection settings
-DB_URL=cassandra-db-hostname       # Replace with your Cassandra host URL
-DB_USERNAME=cassandra-user         # Replace with your Cassandra username
-DB_PASSWORD=cassandra-password     # Replace with your Cassandra password
-CASSANDRA_LOCAL_DATACENTER=datacenter1  # Replace with your Cassandra data center name
-CASSANDRA_KEYSPACE=college         # Replace with your Cassandra keyspace name
+### For AWS Keyspaces:
+```env
+# AWS Keyspaces connection settings
+DB_IS_AWS_KEYSPACES=true         # Set to 'true' for AWS Keyspaces
+DB_CONTACT_POINTS=cassandra.us-east-1.amazonaws.com  # AWS Keyspaces endpoint (replace with your region if necessary)
+DB_LOCAL_DATACENTER=us-east-1    # Replace with your AWS region (e.g., 'us-east-1')
+DB_KEYSPACE=your_keyspace        # Replace with your AWS Keyspace name
+AWS_ACCESS_KEY_ID=your_access_key_id  # Your AWS access key ID
+AWS_SECRET_ACCESS_KEY=your_secret_access_key  # Your AWS secret access key
+AWS_SESSION_TOKEN=your_session_token  # (Optional) Your AWS session token if using temporary credentials
 ```
+
+Note: Set DB_IS_AWS_KEYSPACES to true if you're using AWS Keyspaces, and false if you're connecting to a local Cassandra instance. The rest of the environment variables will adjust accordingly based on this setting.
 
 ## Run the development server
 Start the Next.js development server:
