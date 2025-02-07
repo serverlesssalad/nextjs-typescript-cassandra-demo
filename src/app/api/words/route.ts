@@ -2,6 +2,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import client from '../../../lib/cassandra';
+import { v4 as uuidv4 } from 'uuid';
 
 // Function to retrieve all words
 const getAllWords = async () => {
@@ -12,8 +13,10 @@ const getAllWords = async () => {
 
 // Function to create a new word
 const createWord = async (word: string) => {
-  const query = 'INSERT INTO words (word) VALUES (?)';
-  await client.execute(query, [word], { prepare: true });
+  const query = 'INSERT INTO words (id, word) VALUES (?, ?)';
+  const id = uuidv4(); // Generate a unique UUID
+  console.log(`Inserting: ${id} -> ${word}`);
+  await client.execute(query, [id, word], { prepare: true });
 };
 
 export async function GET(request: NextRequest) {
