@@ -1,0 +1,36 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - DB_CONTACT_POINTS=${DB_CONTACT_POINTS}
+      - DB_USERNAME=${DB_USERNAME}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_LOCAL_DATACENTER=${DB_LOCAL_DATACENTER}
+      - DB_KEYSPACE=${DB_KEYSPACE}
+    volumes:
+      - .:/app
+    command: npm run dev
+    depends_on:
+      - cassandra
+
+  cassandra:
+    image: cassandra:latest
+    environment:
+      CASSANDRA_CLUSTER_NAME: "Test Cluster"
+      CASSANDRA_DATA_FILE_DIR: "/var/lib/cassandra/data"
+      CASSANDRA_COMMITLOG_DIR: "/var/lib/cassandra/commitlog"
+      CASSANDRA_SEEDS: "cassandra"
+    ports:
+      - "9042:9042"
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
