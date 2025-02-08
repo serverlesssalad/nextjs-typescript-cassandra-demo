@@ -9,24 +9,20 @@ AWS.config.update({
   // Optionally, configure AWS credentials (from environment or IAM role)
 });
 
-const isAwsKeyspaces = process.env.DB_IS_AWS_KEYSPACES === 'true'; // Detect if connecting to AWS Keyspaces
+const isAwsKeyspaces = process.env.DB_IS_AWS_KEYSPACES
+  ? process.env.DB_IS_AWS_KEYSPACES === 'true'
+  : true;
 
 let client: Client;
 
 // Set up Cassandra connection configuration for local and AWS Keyspaces
 if (isAwsKeyspaces) {
   // AWS Keyspaces connection setup
-  const credentials = new AWS.Credentials({
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-    sessionToken: process.env.AWS_SESSION_TOKEN,  // Use temporary credentials if needed
-  });
-
   client = new Client({
     contactPoints: [process.env.DB_CONTACT_POINTS || 'cassandra.us-east-1.amazonaws.com'],  // AWS Keyspaces endpoint
     localDataCenter: process.env.DB_LOCAL_DATACENTER || 'us-east-1',
     keyspace: process.env.DB_KEYSPACE || 'your_keyspace',
-    authProvider: new Cassandra.AwsAuthProvider(credentials), // AWS IAM for authentication
+    authProvider: new Cassandra.AwsAuthProvider(AWS.config.credentials), // AWS IAM for authentication
     sslOptions: { rejectUnauthorized: true }, // Enable SSL for AWS Keyspaces
   });
 } else {
