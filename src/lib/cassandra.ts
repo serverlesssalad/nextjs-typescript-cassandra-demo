@@ -2,6 +2,7 @@
 
 import { Client } from 'cassandra-driver';
 import * as AWS from 'aws-sdk';
+import { SigV4AuthProvider } from 'aws-sigv4-auth-cassandra-plugin'; // Import the SigV4AuthProvider
 
 // Set up AWS SDK credentials for AWS Keyspaces (only used if connecting to AWS)
 AWS.config.update({
@@ -22,7 +23,7 @@ if (isAwsKeyspaces) {
     contactPoints: [process.env.DB_CONTACT_POINTS || 'cassandra.us-east-1.amazonaws.com'],  // AWS Keyspaces endpoint
     localDataCenter: process.env.DB_LOCAL_DATACENTER || 'us-east-1',
     keyspace: process.env.DB_KEYSPACE || 'your_keyspace',
-    authProvider: new Cassandra.AwsAuthProvider(AWS.config.credentials), // AWS IAM for authentication
+    authProvider: new SigV4AuthProvider(AWS.config.credentials), // AWS IAM for authentication
     sslOptions: { rejectUnauthorized: true }, // Enable SSL for AWS Keyspaces
   });
 } else {
