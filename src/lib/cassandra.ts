@@ -4,6 +4,21 @@ import { Client } from 'cassandra-driver';
 import * as AWS from 'aws-sdk';
 import { SigV4AuthProvider } from 'aws-sigv4-auth-cassandra-plugin'; // Import the SigV4AuthProvider
 
+// Load credentials manually if needed
+console.log(AWS.config.credentials)
+if (!AWS.config.credentials) {
+  console.log("access_key_id")
+  console.log(process.env.AWS_ACCESS_KEY_ID)
+  console.log("access_secret_key")
+  console.log(process.env.AWS_SECRET_ACCESS_KEY)
+  const credentials = new AWS.Credentials({
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+  });
+
+  AWS.config.credentials = credentials;
+}
+
 // Set up AWS SDK credentials for AWS Keyspaces (only used if connecting to AWS)
 AWS.config.update({
   region: process.env.AWS_REGION || 'us-east-1',  // Set your region
