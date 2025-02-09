@@ -16,8 +16,12 @@ const isAwsKeyspaces = process.env.DB_IS_AWS_KEYSPACES
 
 let client: Client;
 
+console.log(isAwsKeyspaces)
+console.log(process.env.DB_CONTACT_POINTS, process.env.DB_LOCAL_DATACENTER, process.env.DB_KEYSPACE)
 // Set up Cassandra connection configuration for local and AWS Keyspaces
 if (isAwsKeyspaces) {
+  console.log("Aws athenticate way")
+  console.log(AWS.config.credentials)
   // AWS Keyspaces connection setup
   client = new Client({
     contactPoints: [process.env.DB_CONTACT_POINTS || 'cassandra.us-east-1.amazonaws.com'],  // AWS Keyspaces endpoint
@@ -81,12 +85,13 @@ const ensureTable = async () => {
 // Connect to Cassandra
 export const connectToCassandra = async () => {
   try {
-    // Ensure the keyspace and table exist before connecting
-    await ensureKeyspace();
-    await ensureTable();
-
+    // First, connect to the Cassandra cluster
     await client.connect();
     console.log('Connected to Cassandra');
+    
+    // Ensure the keyspace and table exist after connecting
+    await ensureKeyspace();
+    await ensureTable();
   } catch (error) {
     console.error('Cassandra connection error:', error);
     throw error;
