@@ -16,6 +16,8 @@ RUN npm install --production
 # Copy the rest of the project files
 COPY . .
 
+COPY certs/sf-class2-root.crt /app/sf-class2-root.crt
+
 # Expose the application port
 EXPOSE 3000
 

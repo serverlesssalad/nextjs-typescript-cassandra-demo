@@ -3,6 +3,8 @@
 import { Client } from 'cassandra-driver';
 import * as AWS from 'aws-sdk';
 import { SigV4AuthProvider } from 'aws-sigv4-auth-cassandra-plugin'; // Import the SigV4AuthProvider
+import fs from 'fs';
+import path from 'path';
 
 // Load credentials manually if needed
 console.log(AWS.config.credentials)
@@ -11,12 +13,13 @@ if (!AWS.config.credentials) {
   console.log(process.env.AWS_ACCESS_KEY_ID)
   console.log("access_secret_key")
   console.log(process.env.AWS_SECRET_ACCESS_KEY)
-  const credentials = new AWS.Credentials({
+  AWS.config.update({
     accessKeyId: process.env.AWS_ACCESS_KEY_ID,
     secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+    region: process.env.AWS_REGION || 'us-east-1',  // Optionally, you can also configure the region
   });
 
-  AWS.config.credentials = credentials;
+  // AWS.config.credentials = credentials;
 }
 
 // Set up AWS SDK credentials for AWS Keyspaces (only used if connecting to AWS)
@@ -35,15 +38,31 @@ console.log(isAwsKeyspaces)
 console.log(process.env.DB_CONTACT_POINTS, process.env.DB_LOCAL_DATACENTER, process.env.DB_KEYSPACE)
 // Set up Cassandra connection configuration for local and AWS Keyspaces
 if (isAwsKeyspaces) {
+  const certPath = path.resolve(process.cwd(), 'sf-class2-root.crt'); // This points to the file inside the container
+
   console.log("Aws athenticate way")
   console.log(AWS.config.credentials)
+
+  const auth = new SigV4AuthProvider({
+    region: process.env.AWS_REGION, 
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY
+  });
+
+  const sslOptions = {
+    ca: [fs.readFileSync(certPath, 'utf-8')], // Load the certificate file
+    host: process.env.DB_CONTACT_POINTS,
+    rejectUnauthorized: true,
+  };
+
   // AWS Keyspaces connection setup
   client = new Client({
     contactPoints: [process.env.DB_CONTACT_POINTS || 'cassandra.us-east-1.amazonaws.com'],  // AWS Keyspaces endpoint
     localDataCenter: process.env.DB_LOCAL_DATACENTER || 'us-east-1',
     keyspace: process.env.DB_KEYSPACE || 'your_keyspace',
-    authProvider: new SigV4AuthProvider(AWS.config.credentials), // AWS IAM for authentication
-    sslOptions: { rejectUnauthorized: true }, // Enable SSL for AWS Keyspaces
+    authProvider: auth,
+    sslOptions: sslOptions,
+    protocolOptions: { port: 9142 },
   });
 } else {
   // Local Cassandra connection setup
